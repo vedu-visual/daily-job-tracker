@@ -1,0 +1,33 @@
+name: Daily Job Search
+
+on:
+  schedule:
+    - cron: '30 3 * * *'   # 9:00 AM IST
+  workflow_dispatch:
+
+jobs:
+  run-search:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install libraries
+      run: |
+        pip install requests beautifulsoup4
+
+    - name: Run job search
+      run: |
+        python job_search.py
+
+    - name: Upload results
+      uses: actions/upload-artifact@v3
+      with:
+        name: job-results
+        path: results.csv
