@@ -23,7 +23,7 @@ jobs:
 
     - name: Install libraries
       run: |
-        pip install requests beautifulsoup4
+        pip install requests beautifulsoup4 pandas
 
     - name: Run job search
       run: |
