@@ -2,7 +2,7 @@ name: Daily Job Search
 
 on:
   schedule:
-    - cron: '30 3 * * *'   # 9:00 AM IST (UTC+5:30)
+    - cron: '30 3 * * *'   # 9:00 AM IST
   workflow_dispatch:
 
 permissions:
@@ -26,12 +26,28 @@ jobs:
         pip install requests beautifulsoup4 pandas
 
     - name: Run job search
+      id: runscript
       run: |
         python job_search.py
 
-    - name: Upload results
+    - name: Check if results are empty
+      id: checkfile
+      run: |
+        if [ $(wc -l < results.csv) -le 1 ]; then
+          echo "empty=true" >> $GITHUB_OUTPUT
+        else
+          echo "empty=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Upload results (only if not empty)
+      if: steps.checkfile.outputs.empty == 'false'
       uses: actions/upload-artifact@v4
       with:
         name: job-results
         path: results.csv
         retention-days: 7
+
+    - name: No jobs today message
+      if: steps.checkfile.outputs.empty == 'true'
+      run: |
+        echo "No matching jobs found today. Skipping report."
