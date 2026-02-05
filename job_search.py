@@ -83,25 +83,23 @@ def main():
     print("Scraping Indeed...")
     all_jobs.extend(scrape_indeed())
 
-    # ✅ Always create CSV even if empty
-    if not all_jobs:
-        df = pd.DataFrame(columns=["role", "company", "location", "posted", "link", "why_it_matches"])
-        df.to_csv("results.csv", index=False)
-        print("No jobs found. Empty results.csv created.")
-        return
-
     df = pd.DataFrame(all_jobs).drop_duplicates(subset=["role", "company"])
 
+    if df.empty:
+        print("NO_JOBS_FOUND")
+        df = pd.DataFrame(columns=["role", "company", "location", "posted", "link", "why_it_matches"])
+        df.to_csv("results.csv", index=False)
+        return
+
     df["score"] = df.apply(lambda x: score_job(x["role"], x["location"]), axis=1)
-    df = df[df["score"] >= 3]
-    df = df.sort_values(by="score", ascending=False).head(MAX_RESULTS)
+    df = df[df["score"] >= 3].sort_values(by="score", ascending=False).head(MAX_RESULTS)
 
     df["why_it_matches"] = "Entry-level analyst role with location match"
 
     df_out = df[["role", "company", "location", "posted", "link", "why_it_matches"]]
     df_out.to_csv("results.csv", index=False)
+    print("JOBS_FOUND")
 
-    print("Saved results.csv with", len(df_out), "jobs")
 
 
 if __name__ == "__main__":
